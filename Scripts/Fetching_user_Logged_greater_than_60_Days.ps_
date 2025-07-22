@@ -1,0 +1,19 @@
+# Set the number of inactive days
+$DaysInactive = 60
+
+# Calculate the date threshold
+$Time = (Get-Date).AddDays(-$DaysInactive)
+
+# Import AD module (if not already available, requires RSAT tools)
+Import-Module ActiveDirectory
+
+# Get all enabled users who haven't logged in since the threshold date
+$Users = Get-ADUser -Filter {
+    Enabled -eq $true -and LastLogonDate -lt $Time
+} -Properties DisplayName, SamAccountName, LastLogonDate, Enabled
+
+# Export the results to a CSV file
+$Users | Select-Object DisplayName, SamAccountName, LastLogonDate | 
+    Export-Csv -Path "C:\Reports\InactiveUsers.csv" -NoTypeInformation
+
+Write-Host "Report generated: C:\Reports\InactiveUsers.csv"
